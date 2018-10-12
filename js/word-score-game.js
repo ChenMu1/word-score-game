@@ -147,11 +147,127 @@ function getAvailableLetter(){
 	return randomLetter[0];
 }
 
+//Check if the word exists
+function wordIsExit(arrayofwords, left, index){
+	var key = arrayofwords[index];
+	for(var i = left; i < index; i++){
+		if(key == arrayofwords[i]){
+			return true;
+		}
+	}
+	return false;
+}
 
+// Swap array elements 
+function swapWord(arrayofwords, i, j){
+	var temp = arrayofwords[i];
+	arrayofwords[i] = arrayofwords[j];
+	arrayofwords[j] = temp;
+}
+
+var word="";
+//initialize the highest score
+var highestScore = -1;
+
+//Two condations: word contains under line and word do not contains under line
+function checkIfTheWordContainsUnderLine(arrayofwords, string, num){
+	if(num == 1){
+		for(var i = 0; i < string.length; i++){
+			if(string[i]== '_'){
+				for(var ascii = 0 ; ascii < 26; ascii++){
+					string = string.split('');
+					string.splice(i, 1, String.fromCharCode(65 + ascii));
+					string = string.join('');
+					checkWords(arrayofwords, string);
+				}
+			}
+		}
+	}
+	else{
+		for(var i = 0; i < string.length; i++){
+			if(string[i] == '_'){
+				for(var ascii = 0; ascii < 26; ascii++){
+					string[i] = 'a' + ascii;
+					checkIfTheWordContainsUnderLine(arrayofwords, string, num - 1);
+				}
+			}
+		}
+	}
+}
+
+// Check the highest score
+function checkWords(arrayofwords, string){
+	if(isThisAWord(string)){
+		var s = 0;
+		for(var i = 0; i < arrayofwords.length; i++){
+			s += arrayofwords[i].pointsWhenLettersUsed;
+		}
+		if(s > highestScore){
+			word = string;
+			highestScore = s;
+		}
+	}
+}
+
+function arrangement(arrayofwords, left, right){
+	if(left == right){
+		var string = "";
+		var num = 0;
+		for(var i = 0; i <arrayofwords.length; i++){
+			string += arrayofwords[i].letter;
+			if(arrayofwords[i] == '_'){
+				num++;
+			}
+		}
+		if(num > 0){
+			checkIfTheWordContainsUnderLine(arrayofwords, string, num);
+			return;
+		}
+		checkWords(arrayofwords, string);
+	}
+	else{
+		for(var i = left; i <= right; i++){
+			if(!wordIsExit(arrayofwords, left, i)){
+				swapWord(arrayofwords, left, i);
+				arrangement(arrayofwords, left + 1, right);
+				if(right >= 1 && left == 0){
+					var arrayString = JSON.stringify(arrayofwords);
+					var newArray = JSON.parse(arrayString);
+					newArray.shift(); 
+					arrangement(newArray, 0, right -1);
+				}
+				swapWord(arrayofwords, left, i);
+			}
+		}
+	}
+}
+
+//Accomplish the "find word to use" function
 function findWordToUse(){
  //TODO Your job starts here.
-	alert("Your code needs to go here");	
+	//alert("Your code needs to go here");	
+	var string =JSON.stringify(YOUR_HAND);
+	var arrayofwords = JSON.parse(string);
+	arrangement(arrayofwords, 0 , arrayofwords.length - 1);
+	if(highestScore > -1){
+		console.log("max= " + word);
+		if(haveLettersForWord(word)){
+			successfullyAddedWord(word);
+		}
+		else{
+			alert("Mistake"); 
+		}
+	}
+	else{
+		//Pay tribute to "Friends" :) Season 4 Episode "The One With The Embryos"
+		alert("That's not even a word");
+		retireHand();
+	}
+	highestScore= -1;
+	word = "";
 }
+
+
 function humanFindWordToUse(){
 	
 	 var humanFoundWord = $( "#human-word-input").val();
